@@ -9,6 +9,6 @@ int isFunction(char c);
 double operation(double a, double b, char c);
 int fact(double a);
 double fun(double a, char c);
-double evaluateExpression(char *exp, double x);
+double evaluateExpression(char *exp, double x, int low, int high);
 
 #endif

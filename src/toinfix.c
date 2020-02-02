@@ -8,23 +8,32 @@ int isInt(char c){
         return 0;
 }
 
+int isOperator(char c){
+    switch(c){
+        case '+':
+        case '-':
+        case '*':
+        case '/':
+        case '^':
+        case '!': return 1; 
+        default: return 0;
+    }
+}
+
 int cmp(char *exp, int i, int len, char *str){
     int j = i;
     for(int k = 0; exp[j] != '\0' && k < len; j++, k++)
         if(str[k] != exp[j])
             return 0;
-    if(exp[j] == '\0')
-        return 0;
-    else
-        return 1;
+    return 1;
 }
 
 char * toInfix(char *exp, char var){
     char * infix = (char *) malloc(sizeof(exp));
     for(int i = 0, j = 0; exp[i] != '\0';){
-        if(isInt(exp[i])){ 
+        if(isInt(exp[i]) || exp[i] == ')' || exp[i] == 'x' || exp[i] == 'e'){ 
             infix[j] = exp[i];
-            if(!isInt(exp[i+1]) && exp[i+1] != ')')
+            if(exp[i+1] != '.' && exp[i+1] != ')' && !isInt(exp[i+1]) && !isOperator(exp[i+1]) && exp[i+1] != '\0')
                 infix[++j] = '*';
             j++;
             i++;
@@ -96,9 +105,7 @@ char * toInfix(char *exp, char var){
                 j++;
             }
             else if(exp[i] == var){
-                infix[j] = 'x';
-                i++;
-                j++;
+                exp[i] = 'x';
             }
             else{
                 infix[j] = exp[i];
@@ -108,12 +115,4 @@ char * toInfix(char *exp, char var){
         }
     }
     return infix;
-}
-
-int main(){
-    char exp[100];
-    scanf("%s", exp);
-    char *infix = toInfix(exp, 's');
-    printf("%s\n", infix);
-    free(infix);
 }

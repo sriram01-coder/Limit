@@ -16,12 +16,12 @@ int iPre(char symbol){
         case 'f':
         case 'F':
         case 'l':
-        case 'L': return 3;
+        case 'L': return 9;
         case '+':
         case '-': return 2;
-        case '*': return 5;
-        case '/': return 6;
-        case '^': return 8;
+        case '*': return 4;
+        case '/': return 5;
+        case '^': return 7;
         case '!': return 12;
         case '(': return 0;
         default:  // head is null 
@@ -45,9 +45,9 @@ int oPre(char symbol){
         case 'L': return 10;
         case '+':
         case '-': return 1;
-        case '*': return 4;
-        case '/': return 7;
-        case '^': return 9;
+        case '*': return 3;
+        case '/': return 6;
+        case '^': return 8;
         case '!': return 11;
         case '(': return 13;
         default:  // symbol is ')'
@@ -89,7 +89,7 @@ int isFunction(char c){
         case '!': //factorial
         case 'l': //ln
         case 'L': //log
-            return 1;
+                 return 1;
         default: return 0;
     }
 }
@@ -137,10 +137,10 @@ double fun(double a, char c){
     }
 }
 
-double evaluateExpression(char *exp, double x){
+double evaluateExpression(char *exp, double x, int low, int high){
     struct Node *operand = NULL, *operator = NULL;
     int flag = 0;
-    for(int i = 0; exp[i] != '\0'; ){
+    for(int i = low; i <= high; ){
         if(isOperand(exp[i])){
             double sum = 0;
             if(exp[i] == 'p'){
@@ -157,7 +157,7 @@ double evaluateExpression(char *exp, double x){
             }
             else{
                 int j = 0;
-                while(exp[i] != '\0' && isOperand(exp[i])){
+                while(i <= high && isOperand(exp[i])){
                     if(exp[i] == '.'){
                         flag = 3;
                         j = 1;
