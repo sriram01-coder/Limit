@@ -18,7 +18,7 @@ int iPre(char symbol){
         case 'l':
         case 'L': return 3;
         case '+':
-        case '-': return 3;
+        case '-': return 2;
         case '*': return 5;
         case '/': return 6;
         case '^': return 8;
@@ -63,6 +63,17 @@ int isOperand(char c){
         return 0;
 }
 
+int isUnary(char c){
+    switch(c){
+        case '+':
+        case '*':
+        case '/':
+        case '(':
+        case '^': return 1;
+        default: return 0;
+    }
+}
+
 int isFunction(char c){
     switch(c){
         case 's': //sin 
@@ -78,7 +89,7 @@ int isFunction(char c){
         case '!': //factorial
         case 'l': //ln
         case 'L': //log
-                  return 1;
+            return 1;
         default: return 0;
     }
 }
@@ -131,27 +142,27 @@ double evaluateExpression(char *exp, double x){
     int flag = 0;
     for(int i = 0; exp[i] != '\0'; ){
         if(isOperand(exp[i])){
+            double sum = 0;
             if(exp[i] == 'p'){
-                push(&operand, M_PI);
+                sum = M_PI;
                 i++;
             }
             else if(exp[i] == 'e'){
-                push(&operand, M_E);
+                sum = M_E;
                 i++;
             }
             else if(exp[i] == 'x'){
-                push(&operand, x);
+                sum = x;
                 i++;
             }
             else{
-                double sum = 0;
                 int j = 0;
                 while(exp[i] != '\0' && isOperand(exp[i])){
                     if(exp[i] == '.'){
-                        flag = 2;
+                        flag = 3;
                         j = 1;
                     }
-                    else if(flag == 2){
+                    else if(flag == 3){
                         sum = sum + pow(10, -j)*(exp[i] - '0');
                         j++;
                     }
@@ -159,24 +170,30 @@ double evaluateExpression(char *exp, double x){
                         sum = sum*10 + exp[i] - '0';
                     i++;
                 }
-                if(flag == 1)
-                    sum = -sum;
-                push(&operand, sum);
             }
+            if(flag == 1)
+                sum = -sum;
+            push(&operand, sum);
         }
         else{
-            if(exp[i] == '-' && (i == 0 || !isOperand(exp[i-1]))){
+            if(exp[i] == '-' && (i == 0 || isUnary(exp[i-1]))){
                 flag = 1;
                 i++;
             }
             else{
-                flag = 0;
+                if(flag == 1 && isFunction(exp[i]))
+                    flag = 2;
                 if(oPre(exp[i]) < iPre(stackTop(operator))){
                     while(oPre(exp[i]) < iPre(stackTop(operator))){
                         if(isFunction(stackTop(operator))){
                             double a = pop(&operand);
                             double b = fun(a, pop(&operator));
-                            push(&operand, b);
+                            if(flag == 2){
+                                push(&operand, -b);
+                                flag = 0;
+                            }
+                            else
+                                push(&operand, b);
                         }
                         else{
                             double b = pop(&operand);
@@ -196,13 +213,17 @@ double evaluateExpression(char *exp, double x){
                 }
             }
         }
-
     }
     while(!isEmpty(operator)){
         if(isFunction(stackTop(operator))){
             double a = pop(&operand);
             double b = fun(a, pop(&operator));
-            push(&operand, b);
+            if(flag == 2){
+                push(&operand, -b);
+                flag = 0;
+            }
+            else
+                push(&operand, b);
         }
         else{
             double b = pop(&operand);

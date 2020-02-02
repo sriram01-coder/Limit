@@ -4,6 +4,7 @@
 int iPre(char symbol);
 int oPre(char symbol);
 int isOperand(char c);
+int isUnary(char c);
 int isFunction(char c);
 double operation(double a, double b, char c);
 int fact(double a);
