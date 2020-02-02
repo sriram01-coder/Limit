@@ -1,40 +1,86 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <math.h>
 #include "stack.h"
 
 int iPre(char symbol){
-    if(symbol == '+' || symbol == '-')
-        return 2;
-    else if(symbol == '*' || symbol == '/')
-       return 4; 
-    else if(symbol == '^')
-        return 5;
-    else if(symbol == '(')
-        return 0;
-    else
-        //head is NULL
-        return -1;
+    switch(symbol){
+        case 's': 
+        case 'c':
+        case 't':
+        case 'S': 
+        case 'C':
+        case 'T':
+        case 'a': 
+        case 'q':
+        case 'f':
+        case 'F':
+        case 'l':
+        case 'L': return 3;
+        case '+':
+        case '-': return 3;
+        case '*': return 5;
+        case '/': return 6;
+        case '^': return 8;
+        case '!': return 12;
+        case '(': return 0;
+        default:  // head is null 
+                  return -1;
+    }
 }
 
 int oPre(char symbol){
-    if(symbol == '+' || symbol == '-')
-        return 1;
-    else if(symbol == '*' || symbol == '/')
-       return 3; 
-    else if(symbol == '^')
-        return 6;
-    else if(symbol == '(')
-        return 7;
-    else
-        //symbol == '('
-        return 0;
+    switch(symbol){
+        case 's': 
+        case 'c':
+        case 't':
+        case 'S': 
+        case 'C':
+        case 'T':
+        case 'a': 
+        case 'q':
+        case 'f':
+        case 'F':
+        case 'l':
+        case 'L': return 10;
+        case '+':
+        case '-': return 1;
+        case '*': return 4;
+        case '/': return 7;
+        case '^': return 9;
+        case '!': return 11;
+        case '(': return 13;
+        default:  // symbol is ')'
+                  return 0;
+    }
+
 }
 
 int isOperand(char c){
-    if(c == '+' || c == '-' || c == '*' || c == '/' || c == '^' || c == '(' || c == ')')
-        return 0;
-    else
+    if((c >= '0' && c <= '9') || c == 'p' || c == 'e' || c == 'x' || c == '.')
         return 1;
+    else
+        return 0;
+}
+
+int isFunction(char c){
+    switch(c){
+        case 's': //sin 
+        case 'c': //cos
+        case 't': //tan
+        case 'S': //arcsin
+        case 'C': //arccos
+        case 'T': //arctan
+        case 'a': //abs 
+        case 'q': //sqrt
+        case 'f': //fractional_part
+        case 'F': //floor
+        case '!': //factorial
+        case 'l': //ln
+        case 'L': //log
+                  return 1;
+        default: return 0;
+    }
 }
 
 double operation(double a, double b, char c){
@@ -50,45 +96,123 @@ double operation(double a, double b, char c){
         return pow(a, b);
 }
 
-double evaluateExpression(char *exp){
+int fact(double a){
+    if(a == floor(a) && a >= 0){
+        int product = 1;
+        while(a > 1)
+            product *= a--;
+        return product;
+    }
+    else
+        return -1;
+}
+
+double fun(double a, char c){
+    switch(c){
+        case 's': return sin(a);
+        case 'c': return cos(a);
+        case 't': return tan(a);
+        case 'S': return asin(a);
+        case 'C': return acos(a);
+        case 'T': return atan(a);
+        case 'a': return fabs(a);
+        case 'q': return sqrt(a);
+        case 'f': return a - floor(a);
+        case 'F': return floor(a);
+        case '!': return fact(a);
+        case 'l': return log(a);
+        case 'L': return log10(a);
+        default: return -1;
+    }
+}
+
+double evaluateExpression(char *exp, double x){
     struct Node *operand = NULL, *operator = NULL;
+    int flag = 0;
     for(int i = 0; exp[i] != '\0'; ){
         if(isOperand(exp[i])){
-            int sum = 0;
-            while(exp[i] != '\0' && isOperand(exp[i])){
-                sum = sum*10 + exp[i] - '0';
+            if(exp[i] == 'p'){
+                push(&operand, M_PI);
                 i++;
             }
-            push(&operand, sum);
-        }
-        else{
-            if(oPre(exp[i]) < iPre(stackTop(operator))){
-                while(oPre(exp[i]) < iPre(stackTop(operator))){
-                    double b = pop(&operand);
-                    double a = pop(&operand);
-                    double c = operation(a, b, pop(&operator));
-                    push(&operand, c);
-                }
+            else if(exp[i] == 'e'){
+                push(&operand, M_E);
+                i++;
             }
-            else if(oPre(exp[i]) == iPre(stackTop(operator))){
-                pop(&operator);
+            else if(exp[i] == 'x'){
+                push(&operand, x);
                 i++;
             }
             else{
-                push(&operator, exp[i]);
-                i++;
+                double sum = 0;
+                int j = 0;
+                while(exp[i] != '\0' && isOperand(exp[i])){
+                    if(exp[i] == '.'){
+                        flag = 2;
+                        j = 1;
+                    }
+                    else if(flag == 2){
+                        sum = sum + pow(10, -j)*(exp[i] - '0');
+                        j++;
+                    }
+                    else
+                        sum = sum*10 + exp[i] - '0';
+                    i++;
+                }
+                if(flag == 1)
+                    sum = -sum;
+                push(&operand, sum);
             }
         }
+        else{
+            if(exp[i] == '-' && (i == 0 || !isOperand(exp[i-1]))){
+                flag = 1;
+                i++;
+            }
+            else{
+                flag = 0;
+                if(oPre(exp[i]) < iPre(stackTop(operator))){
+                    while(oPre(exp[i]) < iPre(stackTop(operator))){
+                        if(isFunction(stackTop(operator))){
+                            double a = pop(&operand);
+                            double b = fun(a, pop(&operator));
+                            push(&operand, b);
+                        }
+                        else{
+                            double b = pop(&operand);
+                            double a = pop(&operand);
+                            double c = operation(a, b, pop(&operator));
+                            push(&operand, c);
+                        }
+                    }
+                }
+                else if(oPre(exp[i]) == iPre(stackTop(operator))){
+                    pop(&operator);
+                    i++;
+                }
+                else{
+                    push(&operator, exp[i]);
+                    i++;
+                }
+            }
+        }
+
     }
     while(!isEmpty(operator)){
-        double b = pop(&operand);
-        double a = pop(&operand);
-        double c = operation(a, b, pop(&operator));
-        push(&operand, c);
+        if(isFunction(stackTop(operator))){
+            double a = pop(&operand);
+            double b = fun(a, pop(&operator));
+            push(&operand, b);
+        }
+        else{
+            double b = pop(&operand);
+            double a = pop(&operand);
+            double c = operation(a, b, pop(&operator));
+            push(&operand, c);
+        }
     }
-    double x = stackTop(operand);
+    double y = stackTop(operand);
     freeList(operand);
     freeList(operator);
-    return x;
+    return y;
 }
-

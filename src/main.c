@@ -4,7 +4,10 @@
 
 int main(){
     char infix[100];
-    printf("Enter expression: ");
+    printf("Enter function: ");
     scanf("%s", infix);
-    printf("Ans = %f\n", evaluateExpression(infix));
+    double x;
+    printf("Find the limit at: ");
+    scanf("%lf", &x);
+    printf("Ans = %f\n", evaluateExpression(infix, x));
 }

@@ -3,14 +3,14 @@ all: bodmas
 bodmas: main.o stack.o expression.o
 	gcc -Wall -o bodmas main.o stack.o expression.o
 
-main.o: main.c
-	gcc -Wall -c main.c
+main.o: src/main.c
+	gcc -Wall -c -I include/ src/main.c
 
-stack.o: stack.c
-	gcc -Wall -c stack.c
+stack.o: src/stack.c
+	gcc -Wall -c -I include/ src/stack.c
 
-expression.o: expression.c
-	gcc -Wall -c expression.c
+expression.o: src/expression.c
+	gcc -Wall -c -I include/ src/expression.c
 
 clean: 
 	rm main.o
