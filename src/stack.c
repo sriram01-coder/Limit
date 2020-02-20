@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include "stack.h"
 
-
 void push(struct Node **head, double value){
     struct Node *newNode = (struct Node *) malloc(sizeof(struct Node));
     newNode->data = value;

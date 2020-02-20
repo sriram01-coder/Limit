@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdlib.h>
 
 int isInt(char c){
@@ -29,7 +28,7 @@ int cmp(char *exp, int i, int len, char *str){
 }
 
 char * toInfix(char *exp, char var){
-    char * infix = (char *) malloc(sizeof(exp));
+    char * infix = (char *) malloc(500*sizeof(char));
     for(int i = 0, j = 0; exp[i] != '\0';){
         if(isInt(exp[i]) || exp[i] == ')' || exp[i] == 'x' || exp[i] == 'e'){ 
             infix[j] = exp[i];
@@ -103,6 +102,10 @@ char * toInfix(char *exp, char var){
                 infix[j] = 'p';
                 i += 2;
                 j++;
+                if(exp[i] != '.' && exp[i] != ')' && !isInt(exp[i]) && !isOperator(exp[i]) && exp[i] != '\0'){
+                    infix[j++] = '*';
+                    continue;
+                }
             }
             else if(exp[i] == var){
                 exp[i] = 'x';

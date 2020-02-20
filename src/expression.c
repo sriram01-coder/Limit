@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <math.h>
 #include "stack.h"
+#define INF 3269017.372
 
 int iPre(char symbol){
     switch(symbol){
@@ -137,9 +138,18 @@ double fun(double a, char c){
     }
 }
 
+/*void printStack(struct Node *p){
+    while(p != NULL){
+        printf("%f ", p->data);
+        p = p->next;
+    }
+    printf("\n");
+}*/
+
 double evaluateExpression(char *exp, double x, int low, int high){
+    //printf("exp = %s\nx = %.6f\nlow = %d and high = %d\n", exp, x, low, high);
     struct Node *operand = NULL, *operator = NULL;
-    int flag = 0;
+    int isNegative = 0, isDecimal = 0;
     for(int i = low; i <= high; ){
         if(isOperand(exp[i])){
             double sum = 0;
@@ -159,10 +169,10 @@ double evaluateExpression(char *exp, double x, int low, int high){
                 int j = 0;
                 while(i <= high && isOperand(exp[i])){
                     if(exp[i] == '.'){
-                        flag = 3;
+                        isDecimal = 1;
                         j = 1;
                     }
-                    else if(flag == 3){
+                    else if(isDecimal == 1){
                         sum = sum + pow(10, -j)*(exp[i] - '0');
                         j++;
                     }
@@ -171,26 +181,28 @@ double evaluateExpression(char *exp, double x, int low, int high){
                     i++;
                 }
             }
-            if(flag == 1)
+            if(isNegative == 1){
                 sum = -sum;
+                isNegative = 0;
+            }
             push(&operand, sum);
         }
         else{
             if(exp[i] == '-' && (i == 0 || isUnary(exp[i-1]))){
-                flag = 1;
+                isNegative = 1;
                 i++;
             }
             else{
-                if(flag == 1 && isFunction(exp[i]))
-                    flag = 2;
+                if(isNegative == 1 && isFunction(exp[i]))
+                    isNegative = 2;
                 if(oPre(exp[i]) < iPre(stackTop(operator))){
                     while(oPre(exp[i]) < iPre(stackTop(operator))){
                         if(isFunction(stackTop(operator))){
                             double a = pop(&operand);
                             double b = fun(a, pop(&operator));
-                            if(flag == 2){
+                            if(isNegative == 2){
                                 push(&operand, -b);
-                                flag = 0;
+                                isNegative = 0;
                             }
                             else
                                 push(&operand, b);
@@ -198,6 +210,12 @@ double evaluateExpression(char *exp, double x, int low, int high){
                         else{
                             double b = pop(&operand);
                             double a = pop(&operand);
+                            if(stackTop(operator) == '^'){
+                                if(b >= INF)
+                                    b = 17;
+                                else if(b <= -INF)
+                                    b = -17;
+                            }
                             double c = operation(a, b, pop(&operator));
                             push(&operand, c);
                         }
@@ -213,14 +231,20 @@ double evaluateExpression(char *exp, double x, int low, int high){
                 }
             }
         }
+        /*printf("------------------------\n");
+        printf("Printing operator stack\n");
+        printStack(operator);
+        printf("Printing operand stack\n");
+        printStack(operand);
+        printf("------------------------\n");*/
     }
     while(!isEmpty(operator)){
         if(isFunction(stackTop(operator))){
             double a = pop(&operand);
             double b = fun(a, pop(&operator));
-            if(flag == 2){
+            if(isNegative == 2){
                 push(&operand, -b);
-                flag = 0;
+                isNegative = 0;
             }
             else
                 push(&operand, b);
